@@ -1,21 +1,9 @@
-from dataclasses import dataclass
-from typing import Optional
-
 from dotenv import load_dotenv
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 import redis.asyncio as redis
 
 load_dotenv()
-
-
-@dataclass
-class BotData:
-    chat_id: int | str
-    access_token: Optional[str] = None
-
-    def update_token(self, token: str | None):
-        self.access_token = token
 
 
 class BotSettings(BaseSettings):
@@ -31,7 +19,6 @@ class BotSettings(BaseSettings):
         extra = "allow"
 
 
-bot_data: Optional[BotData] = None
 bot_settings = BotSettings()
 
 redis_client = redis.Redis(

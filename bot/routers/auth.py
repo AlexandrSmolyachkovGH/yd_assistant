@@ -2,15 +2,14 @@ from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.routers.main_menu import get_main_menu
-from bot.config import redis_client, bot_data
-from bot.utils.token_handler import token_handler
+from bot.config import redis_client
 from yandex_auth.config import auth_settings as conf
 
 router = Router()
 
 
 async def get_auth_menu(telegram_chat_id: int) -> InlineKeyboardMarkup:
-    token = await token_handler.get_token()
+    token = await redis_client.get(telegram_chat_id)
     if token:
         print(token)
         get_token_btn = InlineKeyboardButton(
@@ -28,8 +27,8 @@ async def get_auth_menu(telegram_chat_id: int) -> InlineKeyboardMarkup:
             get_token_btn,
         ],
         [
-            InlineKeyboardButton(text="Проверить токен", callback_data="check_auth_info"),
-            InlineKeyboardButton(text="Удалить токен", callback_data="check_auth_info"),
+            InlineKeyboardButton(text="Проверить токен", callback_data="check_auth"),
+            InlineKeyboardButton(text="Удалить токен", callback_data="delete_token"),
         ],
         [
             InlineKeyboardButton(text="Справка", callback_data="auth_info"),
@@ -41,7 +40,7 @@ async def get_auth_menu(telegram_chat_id: int) -> InlineKeyboardMarkup:
 
 @router.callback_query(F.data == "auth")
 async def go_to_auth_menu(callback: types.CallbackQuery) -> None:
-    telegram_chat_id = bot_data.chat_id
+    telegram_chat_id = callback.message.chat.id
     keyboard = await get_auth_menu(telegram_chat_id)
     await callback.message.edit_reply_markup(
         reply_markup=keyboard,
@@ -61,5 +60,44 @@ async def token_already_exists(callback: types.CallbackQuery) -> None:
 async def back_to_main_menu(callback: types.CallbackQuery) -> None:
     await callback.message.edit_reply_markup(
         reply_markup=get_main_menu(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "check_auth")
+async def check_token(callback: types.CallbackQuery) -> None:
+    token = await redis_client.get(callback.message.chat.id)
+    if not token:
+        msg = "У вас нет активного токена"
+    else:
+        msg = "У вас есть активный токен:\n" \
+              f"{token[:6]}****{token[-6:]}"
+
+    await callback.message.answer(
+        text=msg,
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "delete_token")
+async def delete_token(callback: types.CallbackQuery) -> None:
+    await redis_client.delete(str(callback.message.chat.id))
+    await callback.message.answer(
+        text="Ваш токен был удален.\n" \
+             f"Для доступа к сервисам получите новый токен",
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "auth_info")
+async def get_token_info(callback: types.CallbackQuery) -> None:
+    with open(
+            file="bot/info/auth.txt",
+            mode="r",
+            encoding='utf-8',
+    ) as file:
+        text = file.read()
+    await callback.message.answer(
+        text=text,
     )
     await callback.answer()

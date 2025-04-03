@@ -2,8 +2,9 @@ from aiogram import Router, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 
+from bot.config import redis_client
+
 from bot import config
-from bot.utils.token_handler import token_handler
 
 router = Router()
 
@@ -24,9 +25,6 @@ def get_main_menu() -> InlineKeyboardMarkup:
 
 @router.message(Command('start'))
 async def start_bot(message: types.Message) -> None:
-    if config.bot_data is None:
-        config.bot_data = config.BotData(chat_id=str(message.chat.id))
-
     await message.answer(
         text="👋 Добро пожаловать в Ассистент ЯндексДиректа!\n" \
              "Тут можно удобно:\n" \
@@ -48,11 +46,18 @@ async def call_menu(message: types.Message) -> None:
 
 @router.message(Command('check_auth'))
 async def check_auth(message: types.Message) -> None:
-    token = await token_handler.get_token()
+    token = await redis_client.get(message.chat.id)
     msg = "У вас есть активный токен"
     if not token:
         msg = "У вас нет токена"
     await message.answer(
         text=f"Проверка авторизации:\n"
              f"{msg}",
+    )
+
+
+@router.message(Command('ping'))
+async def check_app(message: types.Message) -> None:
+    await message.answer(
+        text='pong',
     )

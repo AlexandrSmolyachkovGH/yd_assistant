@@ -23,7 +23,9 @@ async def set_commands(bot: Bot):
     commands = [
         types.BotCommand(command="start", description="Запустить бота"),
         types.BotCommand(command="call_menu", description="Вызвать меню"),
+        types.BotCommand(command="ping", description="Проверить статус бота"),
         types.BotCommand(command="about", description="О боте"),
+
     ]
     await bot.set_my_commands(commands)
 

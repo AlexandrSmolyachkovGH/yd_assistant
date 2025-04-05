@@ -5,8 +5,10 @@ services:
       dockerfile: docker/bot/Dockerfile
       context: .
     image: direct_assistant
-    env_file:
-      - .env
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      BOT_ID: ${BOT_ID}
+      BOT_URI: ${BOT_URI}
     ports:
       - "8081:8000"
     command: >
@@ -19,8 +21,11 @@ services:
 
   auth:
     image: direct_assistant
-    env_file:
-      - .env
+    environment:
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI}
+      TOKEN_URL: ${TOKEN_URL}
     ports:
       - "8080:8000"
     command: >
@@ -37,6 +42,7 @@ services:
     image: "redis:7.4"
     container_name: db_redis
     environment:
+      REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:

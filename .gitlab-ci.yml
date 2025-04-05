@@ -2,18 +2,30 @@ stages:
   - build
   - test
   - deploy
-# 123 
+
 build-job:
   stage: build
   script:
-    - docker build -t yd_assistant .
+    - docker build -f ./docker/bot/Dockerfile -t yd_assistant .
 
 test-job:
   stage: test
   script:
-    - docker run --rm yd_assistant pytest -s -v
+    - >
+      docker run --rm
+      -e CLIENT_ID="$CLIENT_ID"
+      -e CLIENT_SECRET="$CLIENT_SECRET"
+      -e REDIRECT_URI="$REDIRECT_URI"
+      -e TOKEN_URL="$TOKEN_URL"
+      -e REDIS_HOST="$REDIS_HOST"
+      -e REDIS_PORT="$REDIS_PORT"
+      -e REDIS_PASSWORD="$REDIS_PASSWORD"
+      -e BOT_TOKEN="$BOT_TOKEN"
+      -e BOT_ID="$BOT_ID"
+      -e BOT_URI="$BOT_URI"
+      yd_assistant pytest -s -v
 
 deploy-job:
   stage: deploy
   script:
-    - docker-compose up -d
+    - docker-compose -f docker-compose.yaml up -d

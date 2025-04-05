@@ -15,7 +15,8 @@ dependencies = [
     "requests (>=2.32.3,<3.0.0)",
     "uvicorn (>=0.34.0,<0.35.0)",
     "httpx (>=0.28.1,<0.29.0)",
-    "redis (>=5.2.1,<6.0.0)"
+    "redis (>=5.2.1,<6.0.0)",
+    "pytest (>=8.3.5,<9.0.0)"
 ]
 package-mode = false
 

@@ -11,10 +11,11 @@ services:
       BOT_URI: ${BOT_URI}
     ports:
       - "8081:8000"
-    command: >
-      bash -c "python /app/bot/main.py"
+    command: ["python", "/app/bot/main.py"]
     volumes:
-      - .:/app
+      - ./bot:/app/bot
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
     networks:
       - bot_network
     restart: always
@@ -28,8 +29,11 @@ services:
       TOKEN_URL: ${TOKEN_URL}
     ports:
       - "8080:8000"
-    command: >
-      bash -c "python /app/yandex_auth/main.py"
+    command: ["python", "/app/yandex_auth/main.py"]
+    volumes:
+      - ./yandex_auth:/app/yandex_auth
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
     depends_on:
       - bot
     networks:

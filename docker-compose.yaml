@@ -30,8 +30,6 @@ services:
       - "8080:8000"
     command: >
       bash -c "python /app/yandex_auth/main.py"
-    volumes:
-      - .:/app
     depends_on:
       - bot
     networks:

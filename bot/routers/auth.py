@@ -1,12 +1,13 @@
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import os
 
 from bot.routers.main_menu import get_main_menu
 from bot.config import redis_client
 from yandex_auth.config import auth_settings as conf
 
 router = Router()
-
+temp_token = os.getenv("TEMP_TOKEN")
 
 async def get_auth_menu(telegram_chat_id: int) -> InlineKeyboardMarkup:
     token = await redis_client.get(telegram_chat_id)
@@ -68,8 +69,20 @@ async def back_to_main_menu(callback: types.CallbackQuery) -> None:
 async def check_token(callback: types.CallbackQuery) -> None:
     token = await redis_client.get(callback.message.chat.id)
     if not token:
+        # мокаем тестовый токен
+        await redis_client.set(
+            name=callback.message.chat.id,
+            value=temp_token,
+        )
+        # ----------------------
         msg = "У вас нет активного токена"
     else:
+        # мокаем тестовый токен
+        test_token = await redis_client.set(
+            name=callback.message.chat.id,
+            value=temp_token,
+        )
+        # ----------------------
         msg = "У вас есть активный токен:\n" \
               f"{token[:6]}****{token[-6:]}"
 

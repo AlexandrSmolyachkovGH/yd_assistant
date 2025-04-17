@@ -9,6 +9,7 @@ from yandex_auth.config import auth_settings as conf
 router = Router()
 temp_token = os.getenv("TEMP_TOKEN")
 
+
 async def get_auth_menu(telegram_chat_id: int) -> InlineKeyboardMarkup:
     token = await redis_client.get(telegram_chat_id)
     if token:
@@ -65,8 +66,12 @@ async def back_to_main_menu(callback: types.CallbackQuery) -> None:
     await callback.answer()
 
 
-@router.callback_query(F.data == "check_auth")
-async def check_token(callback: types.CallbackQuery) -> None:
+async def get_token_foo(callback: types.CallbackQuery) -> str:
+    token = await redis_client.get(callback.message.chat.id)
+    return token
+
+
+async def check_token_foo(callback: types.CallbackQuery) -> str:
     token = await redis_client.get(callback.message.chat.id)
     if not token:
         # мокаем тестовый токен
@@ -86,6 +91,12 @@ async def check_token(callback: types.CallbackQuery) -> None:
         msg = "У вас есть активный токен:\n" \
               f"{token[:6]}****{token[-6:]}"
 
+    return msg
+
+
+@router.callback_query(F.data == "check_auth")
+async def check_token(callback: types.CallbackQuery) -> None:
+    msg = await check_token_foo(callback)
     await callback.message.answer(
         text=msg,
     )

@@ -12,6 +12,8 @@ class BotSettings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_PASSWORD: SecretStr
+    CLIENT_LOGINS_URI: str
+    CLIENT_REPORTS_URI: str
 
     class Config:
         env_file = ".env"

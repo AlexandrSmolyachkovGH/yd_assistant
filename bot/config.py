@@ -14,6 +14,19 @@ class BotSettings(BaseSettings):
     REDIS_PASSWORD: SecretStr
     CLIENT_LOGINS_URI: str
     CLIENT_REPORTS_URI: str
+    CLIENT_BALANCE_URI: str
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: SecretStr
+    POSTGRES_PORT: int
+    POSTGRES_HOST: str
+
+    @property
+    def get_postgres_uri(self):
+        postgres_uri = (f"postgresql+asyncpg://"
+                        f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD.get_secret_value()}@{self.POSTGRES_HOST}:"
+                        f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
+        return postgres_uri
 
     class Config:
         env_file = ".env"

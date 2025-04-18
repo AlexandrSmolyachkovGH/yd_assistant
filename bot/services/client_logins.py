@@ -1,10 +1,11 @@
 import httpx
+from aiogram import types
 
 from bot.config import bot_settings
 from bot.routers.auth import get_token_foo
 
 
-async def get_logins_from_yd(callback):
+async def get_logins_from_yd(callback: types.CallbackQuery):
     token = await get_token_foo(callback)
     if not token:
         print("Нет активного токена")
@@ -22,10 +23,6 @@ async def get_logins_from_yd(callback):
                 "Archived": "NO",
             },
             "FieldNames": ["Login", "ClientId", "AccountQuality"],
-            # "Page": {
-            #     "Limit": 1000,
-            #     "Offset": 0
-            # }
         }
     }
     try:
@@ -36,8 +33,17 @@ async def get_logins_from_yd(callback):
                 json=agency_clients_body,
             )
             response.raise_for_status()
-            data = response.json()
-            return data["result"]["Clients"]
+            data = response.json()["result"]["Clients"]
+            parsed_data = [
+                {
+                    'client_id': d['ClientId'],
+                    'login': d['Login'],
+                    'quality': str(d['AccountQuality']),
+
+                }
+                for d in data
+            ]
+            return parsed_data
     except httpx.HTTPStatusError as e:
         print(f"Ошибка HTTP: {e.response.status_code} - {e.response.text}")
         raise

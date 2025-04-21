@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import httpx
 from aiogram import types
@@ -58,9 +58,20 @@ async def get_campaign_stat_from_yd(
                 json=agency_clients_body,
             )
             response.raise_for_status()
-            data = response.text.split('\n')[1:-1]
-            result = [d.split('\t') for d in data]
-            return result
+            data = response.text.split('\n')
+            result = [d.split('\t') for d in data[2:-2]]
+            processed_result = [
+                {
+                    "date": datetime.strptime(r[0], "%Y-%m-%d").date(),
+                    "login": r[1],
+                    "campaign_name": r[2],
+                    "impressions": int(r[3]),
+                    "clicks": int(r[4]),
+                    "cost": int(r[5]) / 10000,
+                    "conversions": int(r[6]) if r[6] != '--' else 0,
+                }
+                for r in result]
+            return processed_result
     except httpx.HTTPStatusError as e:
         print(f"Ошибка HTTP: {e.response.status_code} - {e.response.text}")
         raise

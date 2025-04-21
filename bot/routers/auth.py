@@ -2,6 +2,7 @@ from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import os
 
+from bot.info.auth import auth_info_text
 from bot.routers.main_menu import get_main_menu
 from bot.config import redis_client
 from yandex_auth.config import auth_settings as conf
@@ -115,13 +116,7 @@ async def delete_token(callback: types.CallbackQuery) -> None:
 
 @router.callback_query(F.data == "auth_info")
 async def get_token_info(callback: types.CallbackQuery) -> None:
-    with open(
-            file="bot/info/auth.txt",
-            mode="r",
-            encoding='utf-8',
-    ) as file:
-        text = file.read()
     await callback.message.answer(
-        text=text,
+        text=auth_info_text,
     )
     await callback.answer()

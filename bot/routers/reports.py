@@ -2,11 +2,13 @@ from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup
 
 from bot.db.connect_pg import get_repo
+from bot.info.reports import report_type_text
 from bot.repositories.logins import LoginsRepo
 from bot.routers.main_menu import get_main_menu
 from bot.routers.report_buttons.client_report import client_report_buttons
 from bot.routers.report_buttons.daily_report import daily_report_buttons
 from bot.routers.report_buttons.main import main_buttons
+from bot.routers.report_buttons.report_by_login import create_login_report_menu
 from bot.services.balance import get_balance_stat_from_yd
 from bot.services.campaigns_stat import get_campaign_stat_from_yd
 from bot.services.client_logins import get_logins_from_yd
@@ -58,6 +60,30 @@ async def daily_report_menu(callback: types.CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.callback_query(F.data == "login_report_menu")
+async def login_report_menu(callback: types.CallbackQuery) -> None:
+    logins = await get_logins_from_yd(callback)
+    try:
+        kb = InlineKeyboardMarkup(inline_keyboard=create_login_report_menu(logins))
+        await callback.message.edit_reply_markup(
+            reply_markup=kb,
+        )
+    except:
+        await callback.message.answer(
+            text="Нет активных логинов."
+        )
+
+    await callback.answer()
+
+
+@router.callback_query(F.data == "about_reports")
+async def daily_report_menu(callback: types.CallbackQuery) -> None:
+    await callback.message.answer(
+        text=report_type_text,
+    )
+    await callback.answer()
+
+
 @router.callback_query(F.data == "get_logins")
 async def get_client_logins(callback: types.CallbackQuery):
     logins = await get_logins_from_yd(callback)
@@ -65,7 +91,7 @@ async def get_client_logins(callback: types.CallbackQuery):
         text=f"Вы получили {len(logins)} клиентов"
     )
     async with get_repo(LoginsRepo) as repo:
-        await repo.insert(logins_list=logins)
+        await repo.update_logins(logins_list=logins)
     await callback.answer()
 
 

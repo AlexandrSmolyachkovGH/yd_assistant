@@ -40,8 +40,8 @@ async def get_balance_stat_from_yd(
             result = [
                 {
                     "login": x['Login'],
-                    "amount": x['Amount'],
-                    "daily_budget": x['AccountDayBudget'],
+                    "amount": int(float(x['Amount']) * 100),
+                    "daily_budget": x['AccountDayBudget'] * 100 if x['AccountDayBudget'] else 0,
                     "currency": x['Currency'],
                 } for x in data
             ]

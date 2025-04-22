@@ -1,11 +1,11 @@
 import httpx
 from aiogram import types
 
-from bot.config import bot_settings
+from bot.config import bot_settings, redis_client
 from bot.routers.auth import get_token_foo
 
 
-async def get_logins_from_yd(callback: types.CallbackQuery):
+async def get_logins_from_yd(callback: types.CallbackQuery, login: str = None):
     token = await get_token_foo(callback)
     if not token:
         print("Нет активного токена")
@@ -25,6 +25,8 @@ async def get_logins_from_yd(callback: types.CallbackQuery):
             "FieldNames": ["Login", "ClientId", "AccountQuality"],
         }
     }
+    if login:
+        agency_clients_body["params"]["SelectionCriteria"]["Logins"] = [login]
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -52,4 +54,27 @@ async def get_logins_from_yd(callback: types.CallbackQuery):
         raise
 
 
+async def get_logins_from_cache(callback: types.CallbackQuery) -> list[str]:
+    chat_id = callback.message.chat.id
+    cached_logins = await redis_client.get(f"logins_{chat_id}")
+    if cached_logins:
+        return cached_logins.split(",")
+    return []
 
+
+async def put_logins_in_cache(callback: types.CallbackQuery, logins: list[str]) -> None:
+    chat_id = callback.message.chat.id
+    logins_str = ",".join(logins)
+    await redis_client.set(
+        name=f"logins_{chat_id}",
+        value=logins_str,
+    )
+
+
+async def login_handler(callback: types.CallbackQuery) -> list[str]:
+    cached_logins = await get_logins_from_cache(callback)
+    if not cached_logins:
+        logins = await get_logins_from_yd(callback)
+        cached_logins = [elem['login'] for elem in logins]
+        await put_logins_in_cache(callback, cached_logins)
+    return cached_logins

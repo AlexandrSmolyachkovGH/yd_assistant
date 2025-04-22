@@ -2,8 +2,9 @@ from aiogram.types import InlineKeyboardButton
 
 buttons_conf = [
     ("Ежедневные авто-отчеты", "daily_report"),
-    ("Сформировать отчет по клиенту", "client_report"),
-    ("Сформировать отчет по клиенту 2", "login_report_menu"),
+    ("Для тестов", "client_report"),
+    ("Отчет в срезе Аккаунта", "login_report_menu_account"),
+    ("Отчет в срезе Кампаний", "login_report_menu"),
 ]
 
 main_buttons = [

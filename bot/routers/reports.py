@@ -1,5 +1,7 @@
+import os
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup
+from dotenv import load_dotenv
 
 from bot.db.connect_pg import get_repo
 from bot.info.reports import report_type_text
@@ -11,9 +13,12 @@ from bot.routers.report_buttons.main import main_buttons
 from bot.routers.report_buttons.report_by_login import create_login_report_menu
 from bot.services.balance import get_balance_stat_from_yd
 from bot.services.campaigns_stat import get_campaign_stat_from_yd
-from bot.services.client_logins import get_logins_from_yd
+from bot.services.client_logins import get_logins_from_yd, login_handler
+from bot.services.create_simple_report import get_simple_report_service
 
 router = Router()
+load_dotenv()
+test_client = os.getenv('TEST_CLIENT')
 
 
 def get_reports_menu() -> InlineKeyboardMarkup:
@@ -60,19 +65,27 @@ async def daily_report_menu(callback: types.CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.callback_query(F.data == "login_report_menu_account")
+async def login_report_menu_account(callback: types.CallbackQuery) -> None:
+    cached_logins = await login_handler(callback)
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=create_login_report_menu(cached_logins, True),
+    )
+    await callback.message.edit_reply_markup(
+        reply_markup=kb,
+    )
+    await callback.answer()
+
+
 @router.callback_query(F.data == "login_report_menu")
 async def login_report_menu(callback: types.CallbackQuery) -> None:
-    logins = await get_logins_from_yd(callback)
-    try:
-        kb = InlineKeyboardMarkup(inline_keyboard=create_login_report_menu(logins))
-        await callback.message.edit_reply_markup(
-            reply_markup=kb,
-        )
-    except:
-        await callback.message.answer(
-            text="Нет активных логинов."
-        )
-
+    cached_logins = await login_handler(callback)
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=create_login_report_menu(cached_logins),
+    )
+    await callback.message.edit_reply_markup(
+        reply_markup=kb,
+    )
     await callback.answer()
 
 
@@ -97,7 +110,7 @@ async def get_client_logins(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "get_base")
 async def get_client_campaigns(callback: types.CallbackQuery):
-    campaigns = await get_campaign_stat_from_yd(callback, 'clinicanomer1-mr')
+    campaigns = await get_campaign_stat_from_yd(callback, test_client)
     await callback.message.answer(
         text=f"Вы получили статистику за 5 дней"
     )
@@ -106,8 +119,29 @@ async def get_client_campaigns(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "get_balance")
 async def get_client_balance(callback: types.CallbackQuery):
-    balance = await get_balance_stat_from_yd(callback, ['clinicanomer1-mr'])
+    balance = await get_balance_stat_from_yd(callback, [test_client])
     await callback.message.answer(
         text=f"Вы получили баланс данные"
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("get_simple_report"))
+async def get_simple_report(callback: types.CallbackQuery):
+    report_message = await get_simple_report_service(callback)
+    await callback.message.answer(
+        text=report_message,
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("get_account_report"))
+async def get_simple_report(callback: types.CallbackQuery):
+    report_message = await get_simple_report_service(
+        callback,
+        rep_type='Account',
+    )
+    await callback.message.answer(
+        text=report_message,
     )
     await callback.answer()

@@ -9,7 +9,7 @@ from bot.routers.auth import get_token_foo
 async def get_balance_stat_from_yd(
         callback: types.CallbackQuery,
         client_logins: list[str],
-) -> dict:
+) -> list:
     token = await get_token_foo(callback)
     if not token:
         print("Нет активного токена")
@@ -41,7 +41,12 @@ async def get_balance_stat_from_yd(
                 {
                     "login": x['Login'],
                     "amount": int(float(x['Amount']) * 100),
-                    "daily_budget": x['AccountDayBudget'] * 100 if x['AccountDayBudget'] else 0,
+                    "daily_budget": (
+                        float(x['AccountDayBudget'].get('Amount', 0)) * 100
+                        if isinstance(x.get('AccountDayBudget'), dict)
+                        else float(x.get('AccountDayBudget', 0)) * 100
+                        if x.get('AccountDayBudget') is not None
+                        else 0),
                     "currency": x['Currency'],
                 } for x in data
             ]

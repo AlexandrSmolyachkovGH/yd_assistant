@@ -1,10 +1,14 @@
 from aiogram.types import InlineKeyboardButton
 
 
-def create_login_report_menu(logins):
+def create_login_report_menu(logins, account: bool = False):
+    callback_mask = ["get_simple_report_", "get_account_report_"]
     login_report_buttons = [[]]
     buttons = [
-        InlineKeyboardButton(text=f"{elem['login']}", callback_data=f"{elem['login']}") for elem in logins
+        InlineKeyboardButton(
+            text=lgn,
+            callback_data=f"{callback_mask[account]}{lgn}",
+        ) for lgn in logins
     ]
     for btn in buttons:
         if len(login_report_buttons[-1]) < 2:

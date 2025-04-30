@@ -18,7 +18,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
       - "8081:8000"
-    command: ["python", "/app/bot/main.py"]
+    command: [ "python", "/app/bot/main.py" ]
     networks:
       - bot_network
     restart: always
@@ -38,7 +38,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
       - "8080:8000"
-    command: ["python", "/app/yandex_auth/main.py"]
+    command: [ "python", "/app/yandex_auth/main.py" ]
     depends_on:
       - bot
     networks:
@@ -68,8 +68,26 @@ services:
     networks:
       - bot_network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST}
+    networks:
+      - bot_network
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
 volumes:
   redis_data:
+  rabbitmq-data:
+    driver: local
 
 networks:
   bot_network:

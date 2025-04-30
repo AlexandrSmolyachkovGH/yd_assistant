@@ -5,8 +5,15 @@ from bot.config import bot_settings, redis_client
 from bot.routers.auth import get_token_foo
 
 
-async def get_logins_from_yd(callback: types.CallbackQuery, login: str = None):
-    token = await get_token_foo(callback)
+async def get_logins_from_yd(
+        callback: types.CallbackQuery | None = None,
+        login: str = None,
+        admin_token: str | None = None
+) -> list[dict]:
+    if admin_token:
+        token = admin_token
+    if callback:
+        token = await get_token_foo(callback)
     if not token:
         print("Нет активного токена")
         raise

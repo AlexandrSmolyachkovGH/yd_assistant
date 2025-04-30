@@ -20,13 +20,25 @@ class BotSettings(BaseSettings):
     POSTGRES_PASSWORD: SecretStr
     POSTGRES_PORT: int
     POSTGRES_HOST: str
+    RABBITMQ_DEFAULT_USER: str
+    RABBITMQ_DEFAULT_PASS: SecretStr
+    RABBITMQ_DEFAULT_VHOST: str
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: int
+    AGENCY_TOKEN: SecretStr
 
     @property
-    def get_postgres_uri(self):
+    def get_postgres_uri(self) -> str:
         postgres_uri = (f"postgresql+asyncpg://"
                         f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD.get_secret_value()}@{self.POSTGRES_HOST}:"
                         f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
         return postgres_uri
+
+    @property
+    def get_report_rabbit_dsn(self) -> str:
+        return f"amqp://" \
+               f"{self.RABBITMQ_DEFAULT_USER}:{self.RABBITMQ_DEFAULT_PASS.get_secret_value()}@" \
+               f"{self.RABBITMQ_HOST}:{self.RABBITMQ_PORT}/{self.RABBITMQ_DEFAULT_VHOST}"
 
     class Config:
         env_file = ".env"

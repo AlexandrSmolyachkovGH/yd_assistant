@@ -3,7 +3,7 @@ import os
 import sys
 
 
-def configure_logging(level: str = 'WARNING', console: bool = True, file: bool = False, file_name: str = 'app'):
+def configure_logging(level: str = 'WARNING', console: bool = True, file: bool = False, file_name: str = 'app_logs'):
     """
     Creates a logger with specific settings.
     """

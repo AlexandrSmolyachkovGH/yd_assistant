@@ -84,6 +84,37 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
 
+  celery_beat:
+    image: direct_assistant
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    command: >
+      scripts/beat_start.sh
+    depends_on:
+      - rabbitmq
+      - bot
+    networks:
+      - bot_network
+
+  celery_worker:
+    image: direct_assistant
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    command: >
+      scripts/worker_start.sh
+    depends_on:
+      - rabbitmq
+      - bot
+    networks:
+      - bot_network
+
+
 volumes:
   redis_data:
   rabbitmq-data:
